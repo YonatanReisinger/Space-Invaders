@@ -177,7 +177,11 @@ void EnemyShootingSystem() {
         const auto& pos = bagel::World::getComponent<Position>(ent);
         const auto& shoots = bagel::World::getComponent<Shoots>(ent);
         if (shoots.value) {
-            SpaceInvadersGame::CreateProjectileEntity(pos.x + 20.0f, pos.y + 30.0f, 0.0f, 4.0f, false);
+            // Fire a bullet from the center bottom of the enemy
+            SpaceInvadersGame::CreateProjectileEntity(
+                pos.x + 0.5f * INVADER_WIDTH - 0.5f * BULLET_WIDTH, // center horizontally
+                pos.y + INVADER_HEIGHT, // just below the enemy
+                0.0f, INVADER_BULLET_SPEED, false);
         }
     }
 }
