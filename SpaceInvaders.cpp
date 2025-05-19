@@ -1,4 +1,5 @@
 #include "SpaceInvaders.h"
+#include "SpaceInvadersConfig.h"
 #include <iostream>
 
 namespace SpaceInvadersGame {
@@ -130,15 +131,33 @@ void CollisionSystem() {
  * Required: PlayerTag, Shoots, Position, WantsToShoot
  */
 void PlayerShootingSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<PlayerTag>::Bit);
-    required.set(bagel::Component<Shoots>::Bit);
-    required.set(bagel::Component<Position>::Bit);
-    required.set(bagel::Component<WantsToShoot>::Bit);
+    // Only allow one player bullet at a time (like the original demo)
+    bool playerBulletExists = false;
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "PlayerShootingSystem: Handling entity ID " << id << std::endl;
+        if (bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit) &&
+            bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
+            playerBulletExists = true;
+            break;
+        }
+    }
+
+    for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+        bagel::ent_type ent{id};
+        if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Input>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
+            continue;
+        }
+        const auto& input = bagel::World::getComponent<Input>(ent);
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        if (input.firePressed && !playerBulletExists) {
+            // Fire a bullet from the center top of the player
+            SpaceInvadersGame::CreateProjectileEntity(
+                pos.x + 0.5f * PLAYER_WIDTH - 0.5f * 6.0f, // center horizontally
+                pos.y - 16.0f, // just above the player
+                0.0f, -8.0f, true);
+            break; // Only fire one bullet per frame
         }
     }
 }

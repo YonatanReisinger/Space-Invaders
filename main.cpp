@@ -7,6 +7,7 @@
 
 #include "bagel.h"
 #include "SpaceInvaders.h"
+#include "SpaceInvadersConfig.h"
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
