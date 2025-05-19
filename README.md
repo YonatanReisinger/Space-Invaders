@@ -1,2 +1,0 @@
-# Space-Invaders
-# First commit
