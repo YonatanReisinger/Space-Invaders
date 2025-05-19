@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wall -Wextra -pthread CMakeFiles/BAGEL.dir/main.cpp.o CMakeFiles/BAGEL.dir/tests.cpp.o -o BAGEL  lib/SDL/libSDL3.a lib/SDL_image/libSDL3_image.a lib/box2d/src/libbox2d.a -lm 
