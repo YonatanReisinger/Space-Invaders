@@ -10,14 +10,16 @@ namespace SpaceInvadersGame {
  * Required: Position, Velocity
  */
 void MovementSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<Position>::Bit);
-    required.set(bagel::Component<Velocity>::Bit);
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "MovementSystem: Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit)) {
+            continue;
         }
+        auto& pos = bagel::World::getComponent<Position>(ent);
+        const auto& vel = bagel::World::getComponent<Velocity>(ent);
+        pos.x += vel.x;
+        pos.y += vel.y;
     }
 }
 
@@ -25,15 +27,55 @@ void MovementSystem() {
  * @brief Draws all visible entities to the screen.
  * Required: Position, RenderData
  */
-void RenderSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<Position>::Bit);
-    required.set(bagel::Component<RenderData>::Bit);
+void RenderSystem(SDL_Renderer* renderer) {
+    extern SDL_Texture* gInvaderTexture;
+    extern SDL_Texture* gPlayerTexture;
+    extern SDL_FRect invaderSpriteRects[5];
+    extern SDL_FRect playerSpriteRect;
+
+    // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "RenderSystem: Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit)) {
+            continue;
         }
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        SDL_FRect dest = {pos.x, pos.y, (float)60, (float)20};
+        SDL_RenderTexture(renderer, gPlayerTexture, &playerSpriteRect, &dest);
+    }
+
+    // Draw invaders
+    for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+        bagel::ent_type ent{id};
+        if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit)) {
+            continue;
+        }
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        const auto& rend = bagel::World::getComponent<RenderData>(ent);
+        int spriteIdx = rend.spriteId % 5;
+        SDL_FRect dest = {pos.x, pos.y, (float)40, (float)30};
+        SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx], &dest);
+    }
+
+    // Draw projectiles
+    for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+        bagel::ent_type ent{id};
+        if (!bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
+            continue;
+        }
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow
+        } else {
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red
+        }
+        SDL_FRect rect = {pos.x, pos.y, 6.0f, 16.0f};
+        SDL_RenderFillRect(renderer, &rect);
     }
 }
 
@@ -43,13 +85,42 @@ void RenderSystem() {
  * Optional: Health, ScoreValue, Dead
  */
 void CollisionSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<Position>::Bit);
-    required.set(bagel::Component<Collider>::Bit);
-    for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
-        bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "CollisionSystem: Handling entity ID " << id << std::endl;
+    for (bagel::id_type id1 = 0; id1 <= bagel::World::maxId().id; ++id1) {
+        bagel::ent_type ent1{id1};
+        if (!bagel::World::mask(ent1).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent1).test(bagel::Component<Collider>::Bit)) {
+            continue;
+        }
+        const auto& pos1 = bagel::World::getComponent<Position>(ent1);
+        const auto& col1 = bagel::World::getComponent<Collider>(ent1);
+        for (bagel::id_type id2 = id1 + 1; id2 <= bagel::World::maxId().id; ++id2) {
+            bagel::ent_type ent2{id2};
+            if (!bagel::World::mask(ent2).test(bagel::Component<Position>::Bit) ||
+                !bagel::World::mask(ent2).test(bagel::Component<Collider>::Bit)) {
+                continue;
+            }
+            const auto& pos2 = bagel::World::getComponent<Position>(ent2);
+            const auto& col2 = bagel::World::getComponent<Collider>(ent2);
+            if (pos1.x < pos2.x + col2.width &&
+                pos1.x + col1.width > pos2.x &&
+                pos1.y < pos2.y + col2.height &&
+                pos1.y + col1.height > pos2.y) {
+                // Collision detected
+                if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
+                    auto& health1 = bagel::World::getComponent<Health>(ent1);
+                    health1.hp--;
+                    if (health1.hp <= 0) {
+                        bagel::World::addComponent<Dead>(ent1, Dead{});
+                    }
+                }
+                if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
+                    auto& health2 = bagel::World::getComponent<Health>(ent2);
+                    health2.hp--;
+                    if (health2.hp <= 0) {
+                        bagel::World::addComponent<Dead>(ent2, Dead{});
+                    }
+                }
+            }
         }
     }
 }
@@ -77,15 +148,17 @@ void PlayerShootingSystem() {
  * Required: EnemyTag, Shoots, Position, WantsToShoot
  */
 void EnemyShootingSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<EnemyTag>::Bit);
-    required.set(bagel::Component<Shoots>::Bit);
-    required.set(bagel::Component<Position>::Bit);
-    required.set(bagel::Component<WantsToShoot>::Bit);
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "EnemyShootingSystem: Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
+            continue;
+        }
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        const auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        if (shoots.value) {
+            SpaceInvadersGame::CreateProjectileEntity(pos.x + 20.0f, pos.y + 30.0f, 0.0f, 4.0f, false);
         }
     }
 }
@@ -96,12 +169,10 @@ void EnemyShootingSystem() {
  * Optional: Dead
  */
 void HealthSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<Health>::Bit);
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "HealthSystem: Handling entity ID " << id << std::endl;
+        if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) {
+            bagel::World::destroyEntity(ent);
         }
     }
 }
@@ -111,13 +182,14 @@ void HealthSystem() {
  * Required: ScoreValue, Dead
  */
 void ScoreSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<ScoreValue>::Bit);
-    required.set(bagel::Component<Dead>::Bit);
+    static int score = 0;
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "ScoreSystem: Handling entity ID " << id << std::endl;
+        if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit) &&
+            bagel::World::mask(ent).test(bagel::Component<ScoreValue>::Bit)) {
+            const auto& scoreVal = bagel::World::getComponent<ScoreValue>(ent);
+            score += scoreVal.value;
+            std::cout << "Score: " << score << std::endl;
         }
     }
 }
@@ -127,12 +199,44 @@ void ScoreSystem() {
  * Required: EnemyTag
  */
 void EnemyLogicSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<EnemyTag>::Bit);
+    static int invaderMoveCounter = 0;
+    static int invaderDir = 1; // 1=right, -1=left
+    constexpr int INVADER_MOVE_INTERVAL = 30;
+    constexpr float INVADER_MOVE_STEP = 20.0f;
+
+    invaderMoveCounter++;
+    if (invaderMoveCounter >= INVADER_MOVE_INTERVAL) {
+        invaderMoveCounter = 0;
+        float minX = 800.0f, maxX = 0.0f;
+        for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+            bagel::ent_type ent{id};
+            if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
+                !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
+                continue;
+            }
+            auto& pos = bagel::World::getComponent<Position>(ent);
+            pos.x += invaderDir * INVADER_MOVE_STEP;
+            if (pos.x < minX) minX = pos.x;
+            if (pos.x + 40.0f > maxX) maxX = pos.x + 40.0f;
+        }
+        if (minX < 10.0f || maxX > 790.0f) {
+            invaderDir *= -1;
+        }
+    }
+
+    // Random shooting for enemies
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "EnemyLogicSystem: Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
+            continue;
+        }
+        auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        if (rand() % 60 == 0) {
+            shoots.value = true;
+        } else {
+            shoots.value = false;
         }
     }
 }
@@ -142,14 +246,18 @@ void EnemyLogicSystem() {
  * Required: PlayerTag, Input
  */
 void PlayerIntentSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<PlayerTag>::Bit);
-    required.set(bagel::Component<Input>::Bit);
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        if (bagel::World::mask(ent).test(required)) {
-            std::cout << "PlayerIntentSystem: Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Input>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit)) {
+            continue;
         }
+        const auto& input = bagel::World::getComponent<Input>(ent);
+        auto& vel = bagel::World::getComponent<Velocity>(ent);
+        vel.x = 0.0f;
+        if (input.leftPressed) vel.x = -6.0f;
+        if (input.rightPressed) vel.x = 6.0f;
     }
 }
 
@@ -158,16 +266,24 @@ void PlayerIntentSystem() {
  * Required: PlayerTag, Intention
  */
 void PlayerActionSystem() {
-    bagel::Mask required;
-    required.set(bagel::Component<PlayerTag>::Bit);
-    // Intention component to be added to the player entity for this system
-    // required.set(bagel::Component<Intention>::Bit); // Uncomment when Intention is defined
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
-        // if (bagel::World::mask(ent).test(required)) { // Uncomment when Intention is defined
-        //     std::cout << "PlayerActionSystem: Handling entity ID " << id << std::endl;
-        // }
-        std::cout << "PlayerActionSystem: (stub, add Intention check) Handling entity ID " << id << std::endl;
+        if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Input>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
+            continue;
+        }
+        const auto& input = bagel::World::getComponent<Input>(ent);
+        const auto& pos = bagel::World::getComponent<Position>(ent);
+        auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        if (input.firePressed && !shoots.value) {
+            shoots.value = true;
+            // Create a projectile
+            SpaceInvadersGame::CreateProjectileEntity(pos.x + 30.0f, pos.y, 0.0f, -8.0f, true);
+        } else if (!input.firePressed) {
+            shoots.value = false;
+        }
     }
 }
 

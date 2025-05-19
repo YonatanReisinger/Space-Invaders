@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include "bagel.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 /**
  * @file SpaceInvaders.h
@@ -123,7 +125,7 @@ struct WantsToShoot {};
 // === Systems ===
 
 void MovementSystem();
-void RenderSystem();
+void RenderSystem(SDL_Renderer* renderer);
 void CollisionSystem();
 void PlayerShootingSystem();
 void EnemyShootingSystem();
