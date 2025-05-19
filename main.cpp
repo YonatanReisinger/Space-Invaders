@@ -9,17 +9,6 @@
 #include "SpaceInvaders.h"
 #include "SpaceInvadersConfig.h"
 
-constexpr int WINDOW_WIDTH = 800;
-constexpr int WINDOW_HEIGHT = 600;
-constexpr int PLAYER_WIDTH = 60;
-constexpr int PLAYER_HEIGHT = 20;
-constexpr int INVADER_WIDTH = 40;
-constexpr int INVADER_HEIGHT = 30;
-constexpr int INVADER_ROWS = 3;
-constexpr int INVADER_COLS = 5;
-constexpr int INVADER_X_GAP = 30;
-constexpr int INVADER_Y_GAP = 20;
-
 SDL_Texture* gInvaderTexture = nullptr;
 SDL_Texture* gPlayerTexture = nullptr;
 
@@ -34,6 +23,7 @@ SDL_FRect invaderSpriteRects[5] = {
 SDL_FRect playerSpriteRect = {136, 13, 55, 58};
 
 int main() {
+    using namespace SpaceInvadersGame;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;

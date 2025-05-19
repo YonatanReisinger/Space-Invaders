@@ -12,6 +12,8 @@ add_executable(BAGEL main.cpp
         bagel_cfg.h
         Pong.cpp
         Pong.h
+        SpaceInvaders.cpp
+        SpaceInvaders.h
 )
 
 set(SDL_STATIC ON)
