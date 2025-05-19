@@ -29,10 +29,10 @@ void MovementSystem() {
  * Required: Position, RenderData
  */
 void RenderSystem(SDL_Renderer* renderer) {
-    extern SDL_Texture* gInvaderTexture;
-    extern SDL_Texture* gPlayerTexture;
-    extern SDL_FRect invaderSpriteRects[5];
-    extern SDL_FRect playerSpriteRect;
+    SDL_Texture* gInvaderTexture = nullptr;
+    SDL_Texture* gPlayerTexture;
+    SDL_FRect invaderSpriteRects[5];
+    SDL_FRect playerSpriteRect;
 
     // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
