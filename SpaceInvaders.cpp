@@ -50,7 +50,8 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         bagel::ent_type ent{id};
         if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
-            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit)) {
+            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit) ||
+            bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit)) {
             continue;
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
@@ -67,7 +68,8 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         bagel::ent_type ent{id};
         if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
-            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit)) {
+            !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit) ||
+            bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit)) {
             continue;
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
