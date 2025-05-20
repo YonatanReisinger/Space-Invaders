@@ -240,9 +240,8 @@ void EnemyShootingSystem() {
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
         const auto& shoots = bagel::World::getComponent<Shoots>(ent);
-        int toShoot = getRandomNumber(10);
 
-        if (shoots.value && !toShoot) {
+        if (shoots.value) {
             // Fire a bullet from the center bottom of the enemy
             SpaceInvadersGame::CreateProjectileEntity(
                 pos.x + 0.5f * INVADER_WIDTH - 0.5f * BULLET_WIDTH, // center horizontally
@@ -291,8 +290,6 @@ void ScoreSystem() {
 void EnemyLogicSystem() {
     static int invaderMoveCounter = 0;
     static int invaderDir = 1; // 1=right, -1=left
-    constexpr int INVADER_MOVE_INTERVAL = 30;
-    constexpr float INVADER_MOVE_STEP = 20.0f;
 
     invaderMoveCounter++;
     if (invaderMoveCounter >= INVADER_MOVE_INTERVAL) {
@@ -311,6 +308,15 @@ void EnemyLogicSystem() {
         }
         if (minX < 10.0f || maxX > 790.0f) {
             invaderDir *= -1;
+            for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+                bagel::ent_type ent{id};
+                if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
+                    !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
+                    continue;
+                    }
+                auto& pos = bagel::World::getComponent<Position>(ent);
+                pos.y += INVADER_DROP_STEP;
+            }
         }
     }
 
@@ -323,7 +329,7 @@ void EnemyLogicSystem() {
             continue;
         }
         auto& shoots = bagel::World::getComponent<Shoots>(ent);
-        if (rand() % 60 == 0) {
+        if (rand() % 300 == 0) {
             shoots.value = true;
         } else {
             shoots.value = false;
