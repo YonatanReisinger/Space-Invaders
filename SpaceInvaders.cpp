@@ -98,6 +98,13 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
     SDL_RenderPresent(renderer);
 }
 
+bool AreEntitiesPlayerAndEnemy(bagel::ent_type ent1, bagel::ent_type ent2){
+        return (bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit) &&
+            bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) ||
+                (bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit) &&
+            bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit));
+
+    }
 /**
  * @brief Detects and handles collisions between entities.
  * Required: Position, Collider
@@ -123,20 +130,21 @@ void CollisionSystem() {
             if (pos1.x < pos2.x + col2.width &&
                 pos1.x + col1.width > pos2.x &&
                 pos1.y < pos2.y + col2.height &&
-                pos1.y + col1.height > pos2.y) {
+                pos1.y + col1.height > pos2.y &&
+                AreEntitiesPlayerAndEnemy(ent1, ent2)) {
                 // Collision detected
                 if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
                     auto& health1 = bagel::World::getComponent<Health>(ent1);
                     health1.hp--;
                     if (health1.hp <= 0) {
-                        bagel::World::addComponent<Dead>(ent1, Dead{});
+                        bagel::World::addComponent(ent1, Dead{});
                     }
                 }
                 if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
                     auto& health2 = bagel::World::getComponent<Health>(ent2);
                     health2.hp--;
                     if (health2.hp <= 0) {
-                        bagel::World::addComponent<Dead>(ent2, Dead{});
+                        bagel::World::addComponent(ent2, Dead{});
                     }
                 }
             }
@@ -343,7 +351,7 @@ int CreatePlayerEntity(float pos_x, float pos_y) {
         RenderData{0},
         Collider{1.0f, 1.0f},
         PlayerTag{},
-        Health{3},
+        Health{1},
         Shoots{false},
         Input{},
         WantsToShoot{}
@@ -383,7 +391,8 @@ int CreateProjectileEntity(float pos_x, float pos_y, float vel_x, float vel_y, b
         Velocity{vel_x, vel_y},
         RenderData{2},
         Collider{0.2f, 0.5f},
-        ProjectileTag{}
+        ProjectileTag{},
+        Health{1}
     );
     if (isPlayer) {
         proj.add(PlayerTag{});
