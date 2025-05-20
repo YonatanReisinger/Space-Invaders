@@ -41,10 +41,10 @@ void MovementSystem() {
  * Required: Position, RenderData
  */
 void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
-    SDL_FRect invaderSpriteRects[], SDL_FRect playerSpriteRect) {
+    SDL_FRect invaderSpriteRects[][NUM_OF_INVADERS_POSTURES_PER_TYPE], SDL_FRect playerSpriteRect) {
 
-    //SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderClear(renderer);
+
     // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
@@ -68,14 +68,18 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit) ||
+            !bagel::World::mask(ent).test(bagel::Component<PostureChanger>::Bit) ||
             bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit)) {
             continue;
         }
+
         const auto& pos = bagel::World::getComponent<Position>(ent);
         const auto& rend = bagel::World::getComponent<RenderData>(ent);
+        const auto& posture = bagel::World::getComponent<PostureChanger>(ent);
         int spriteIdx = rend.spriteId % NUM_OF_INVADERS_TYPES;
+        int postureIdx = posture.postureId;
         SDL_FRect dest = {pos.x, pos.y, (float)40, (float)30};
-        if (!SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx], &dest))
+        if (!SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx][postureIdx], &dest))
             std::cerr << "RenderTexture failed: " << SDL_GetError() << std::endl;
     }
 
@@ -99,6 +103,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
     SDL_RenderPresent(renderer);
 }
 
+
 bool AreEntitiesPlayerAndEnemy(bagel::ent_type ent1, bagel::ent_type ent2){
         return (bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit) &&
             bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) ||
@@ -113,6 +118,21 @@ bool IsEntityOutOfView(bagel::ent_type ent){
             return pos.x < 0 || pos.x > WINDOW_WIDTH || pos.y < 0 || pos.y > WINDOW_HEIGHT;
         }
         return false;
+    }
+
+    void ChangeEnemyPostureSystem()
+    {
+        static int step = 1;
+        for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+            bagel::ent_type ent{id};
+            if (!bagel::World::mask(ent).test(bagel::Component<PostureChanger>::Bit))
+                continue;
+            auto& post = bagel::World::getComponent<PostureChanger>(ent);
+            if (step == 0) {
+                post.postureId = ++post.postureId % NUM_OF_INVADERS_POSTURES_PER_TYPE;
+            }
+        }
+        step = ++step % CHANGE_INVADERS_POSTURE_SPEED;
     }
 
 void DeleteOffscreenEntitiesSystem(){
@@ -388,6 +408,7 @@ int CreateEnemyEntity(float pos_x, float pos_y, int score) {
         Position{pos_x, pos_y},
         Velocity{0.0f, 0.0f},
         RenderData{0},
+        PostureChanger{0},
         Collider{1.0f, 1.0f},
         EnemyTag{},
         Health{1},

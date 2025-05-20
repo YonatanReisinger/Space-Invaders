@@ -4,6 +4,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
+#include "SpaceInvadersConfig.h"
+
 /**
  * @file SpaceInvaders.h
  * @brief Core module for the Space Invaders ECS game.
@@ -94,6 +96,10 @@ struct RenderData {
     int spriteId = 0; ///< Placeholder for sprite/texture reference
 };
 
+    struct PostureChanger {
+        int postureId = 0;
+    };
+
 /**
  * @brief Tag for entities marked as dead (dynamic, optional).
  */
@@ -126,7 +132,7 @@ struct WantsToShoot {};
 
 void MovementSystem();
 void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
-    SDL_FRect invaderSpriteRects[], SDL_FRect playerSpriteRect);
+    SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES][NUM_OF_INVADERS_POSTURES_PER_TYPE], SDL_FRect playerSpriteRect);
 void CollisionSystem();
 void PlayerShootingSystem();
 void EnemyShootingSystem();
@@ -136,6 +142,7 @@ void EnemyLogicSystem();
 void PlayerIntentSystem();
 void PlayerActionSystem();
     void DeleteOffscreenEntitiesSystem();
+    void ChangeEnemyPostureSystem();
 
 // === Entity creation ===
 

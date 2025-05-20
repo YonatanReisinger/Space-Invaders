@@ -24,11 +24,11 @@ constexpr float TEX_SCALE = 3;
 constexpr SDL_FRect PLAYER_REC = {16,16, 42, 56};
 b2WorldId world;
 
-SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES] = {
-    {5, 1, 8, 8},
-    {22, 1, 11, 8},
-    {39, 1, 13, 8},
-};
+SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES][NUM_OF_INVADERS_POSTURES_PER_TYPE] = {
+    {{5, 1, 8, 8}, {5, 11, 8, 8}},
+    {{22, 1, 11, 8}, {22, 11, 11, 8}},
+    {{39, 1, 13, 8}, {39, 11, 13, 8}}
+    };
 SDL_FRect playerSpriteRect = PLAYER_REC;
 
 SDL_Texture* get_texture(const char* SheetPath)
@@ -149,6 +149,7 @@ int main() {
         SpaceInvadersGame::PlayerActionSystem();
         SpaceInvadersGame::EnemyLogicSystem();
         SpaceInvadersGame::EnemyShootingSystem();
+        SpaceInvadersGame::ChangeEnemyPostureSystem();
         SpaceInvadersGame::MovementSystem();
         SpaceInvadersGame::CollisionSystem();
         SpaceInvadersGame::HealthSystem();
