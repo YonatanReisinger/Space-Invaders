@@ -26,9 +26,9 @@ b2WorldId world;
 
 SDL_FRect invaderSpriteRects[5] = {
     {25, 117, 39, 27},
+    {75, 114, 39, 27},
     {25, 117, 39, 27},
-    {25, 117, 39, 27},
-    {25, 117, 39, 27},
+    {75, 114, 39, 27},
 {25, 117, 39, 27}
 };
 SDL_FRect playerSpriteRect = PLAYER_REC;
@@ -100,7 +100,9 @@ int main() {
     invaderBody = getEntityBody( 10,0 , bodyDef, shapeDef);
 
     // === Entity Creation ===
+    bagel::World::createEntity(); //Created So Player Entity won't have the id 0.
     int player_id = SpaceInvadersGame::CreatePlayerEntity(WINDOW_WIDTH / 2.0f - PLAYER_WIDTH / 2.0f, WINDOW_HEIGHT - 60.0f);
+    //int player_id = SpaceInvadersGame::CreatePlayerEntity(0, 0);
     bagel::Entity player_entity(bagel::ent_type{player_id});
     player_entity.get<SpaceInvadersGame::Collider>().width = PLAYER_WIDTH;
     player_entity.get<SpaceInvadersGame::Collider>().height = PLAYER_HEIGHT;

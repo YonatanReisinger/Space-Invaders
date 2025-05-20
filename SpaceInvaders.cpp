@@ -1,4 +1,7 @@
 #include "SpaceInvaders.h"
+
+#include <cassert>
+
 #include "SpaceInvadersConfig.h"
 #include <iostream>
 
@@ -30,6 +33,11 @@ void MovementSystem() {
  */
 void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
     SDL_FRect invaderSpriteRects[], SDL_FRect playerSpriteRect) {
+
+
+    // bagel::ent_type player{1};
+    // assert(bagel::World::mask(player).test(bagel::Component<Position>::Bit) &&
+    //     "Should Return True");
 
     // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
