@@ -4,9 +4,18 @@
 
 #include "SpaceInvadersConfig.h"
 #include <iostream>
+#include <random>
 
 namespace SpaceInvadersGame {
 
+    //Returns a random number between 0 and n-1
+    int getRandomNumber(int n) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd()); // Static to avoid reseeding on every call
+        std::uniform_int_distribution<> distrib(0, n);
+
+        return distrib(gen);
+    }
 // === Systems Implementations ===
 
 /**
@@ -185,7 +194,9 @@ void EnemyShootingSystem() {
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
         const auto& shoots = bagel::World::getComponent<Shoots>(ent);
-        if (shoots.value) {
+        int toShoot = getRandomNumber(10);
+
+        if (shoots.value && !toShoot) {
             // Fire a bullet from the center bottom of the enemy
             SpaceInvadersGame::CreateProjectileEntity(
                 pos.x + 0.5f * INVADER_WIDTH - 0.5f * BULLET_WIDTH, // center horizontally
