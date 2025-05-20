@@ -21,18 +21,17 @@ b2BodyId invaderBody;
 
 constexpr float BOX_SCALE = 1;
 constexpr float TEX_SCALE = 3;
-constexpr SDL_FRect PLAYER_TEX = {16,16, 42, 56};
+constexpr SDL_FRect PLAYER_REC = {16,16, 42, 56};
 b2WorldId world;
 
-// Placeholder for sprite rectangles (you might want to move these to a config or asset manager later)
 SDL_FRect invaderSpriteRects[5] = {
-    {74, 13, 42, 40},
-    {75, 62, 42, 40},
-    {124, 63, 42, 40},
-    {219, 110, 42, 40},
-    {264, 162, 42, 40}
+    {25, 117, 39, 27},
+    {25, 117, 39, 27},
+    {25, 117, 39, 27},
+    {25, 117, 39, 27},
+{25, 117, 39, 27}
 };
-SDL_FRect playerSpriteRect = {136, 13, 55, 58};
+SDL_FRect playerSpriteRect = PLAYER_REC;
 
 SDL_Texture* get_texture(const char* SheetPath)
 {
@@ -67,8 +66,8 @@ b2BodyId getEntityBody(int x, int y, b2BodyDef& bodyDef, b2ShapeDef& shapeDef)
     b2BodyId body = b2CreateBody(world, &bodyDef);
 
     shapeDef = b2DefaultShapeDef();
-    float halfWidth = (PLAYER_TEX.w * TEX_SCALE) / (2 * BOX_SCALE);
-    float halfHeight = (PLAYER_TEX.h * TEX_SCALE) / (2 * BOX_SCALE);
+    float halfWidth = (PLAYER_REC.w * TEX_SCALE) / (2 * BOX_SCALE);
+    float halfHeight = (PLAYER_REC.h * TEX_SCALE) / (2 * BOX_SCALE);
     b2Polygon shape = b2MakeBox(halfWidth, halfHeight);
     b2CreatePolygonShape(body, &shapeDef, &shape);
 
@@ -90,6 +89,10 @@ int main() {
 
     invaderTexture = get_texture("res/invaders.png");
     playerTexture = get_texture("res/player.png");
+
+    b2WorldDef worldDef = b2DefaultWorldDef();
+    worldDef.gravity = { 0,0 };
+    world = b2CreateWorld(&worldDef);
 
     b2BodyDef bodyDef;
     b2ShapeDef shapeDef;
@@ -155,7 +158,8 @@ int main() {
         // === Rendering ===
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-        SpaceInvadersGame::RenderSystem(renderer);
+        SpaceInvadersGame::RenderSystem(renderer, invaderTexture, playerTexture,
+            invaderSpriteRects, playerSpriteRect);
         SDL_RenderPresent(renderer);
 
         // Stop updating the game after game over

@@ -125,7 +125,8 @@ struct WantsToShoot {};
 // === Systems ===
 
 void MovementSystem();
-void RenderSystem(SDL_Renderer* renderer);
+void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
+    SDL_FRect invaderSpriteRects[], SDL_FRect playerSpriteRect);
 void CollisionSystem();
 void PlayerShootingSystem();
 void EnemyShootingSystem();
