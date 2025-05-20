@@ -4,13 +4,25 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+using namespace std;
 
 #include "bagel.h"
 #include "SpaceInvaders.h"
 #include "SpaceInvadersConfig.h"
+#include "box2d/box2d.h"
+#include "box2d/types.h"
 
-SDL_Texture* gInvaderTexture = nullptr;
-SDL_Texture* gPlayerTexture = nullptr;
+SDL_Texture* invaderTexture = nullptr;
+SDL_Texture* playerTexture = nullptr;
+SDL_Window* window = nullptr;
+SDL_Renderer* renderer = nullptr;
+b2BodyId playerBody;
+b2BodyId invaderBody;
+
+constexpr float BOX_SCALE = 1;
+constexpr float TEX_SCALE = 3;
+constexpr SDL_FRect PLAYER_TEX = {16,16, 42, 56};
+b2WorldId world;
 
 // Placeholder for sprite rectangles (you might want to move these to a config or asset manager later)
 SDL_FRect invaderSpriteRects[5] = {
@@ -22,36 +34,67 @@ SDL_FRect invaderSpriteRects[5] = {
 };
 SDL_FRect playerSpriteRect = {136, 13, 55, 58};
 
+SDL_Texture* get_texture(const char* SheetPath)
+{
+    SDL_Surface* surf = IMG_Load(SheetPath);
+    if (surf == nullptr) {
+        cout << SDL_GetError() << endl;
+        return nullptr;
+    }
+
+    // if (color != nullptr)
+    // {
+    //     Uint32 colorKey = SDL_MapRGB(SDL_GetPixelFormatDetails(surf->format),
+    //         nullptr, color->r, color->g, color->b);
+    //     SDL_SetSurfaceColorKey(surf, true, colorKey);
+    // }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surf);
+    if (texture == nullptr) {
+        cout << SDL_GetError() << endl;
+        return nullptr;
+    }
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+    SDL_DestroySurface(surf);
+
+    return texture;
+}
+b2BodyId getEntityBody(int x, int y, b2BodyDef& bodyDef, b2ShapeDef& shapeDef)
+{
+    bodyDef = b2DefaultBodyDef();
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position = { x / BOX_SCALE, y / BOX_SCALE };
+    b2BodyId body = b2CreateBody(world, &bodyDef);
+
+    shapeDef = b2DefaultShapeDef();
+    float halfWidth = (PLAYER_TEX.w * TEX_SCALE) / (2 * BOX_SCALE);
+    float halfHeight = (PLAYER_TEX.h * TEX_SCALE) / (2 * BOX_SCALE);
+    b2Polygon shape = b2MakeBox(halfWidth, halfHeight);
+    b2CreatePolygonShape(body, &shapeDef, &shape);
+
+    return body;
+}
+
 int main() {
     using namespace SpaceInvadersGame;
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Space Invaders ECS", WINDOW_WIDTH, WINDOW_HEIGHT, 0);
-    if (!window) {
-        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (!renderer) {
-        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
+    if (!SDL_CreateWindowAndRenderer(
+    "Space Invaders", WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window, &renderer)) {
+        std::cerr << SDL_GetError() << std::endl;
         return 1;
     }
 
-    SDL_Surface* invaderSurf = IMG_Load("res/invaders.png");
-    if (!invaderSurf) { std::cerr << SDL_GetError() << std::endl; return 1; }
-    gInvaderTexture = SDL_CreateTextureFromSurface(renderer, invaderSurf);
-    SDL_DestroySurface(invaderSurf);
+    invaderTexture = get_texture("res/invaders.png");
+    playerTexture = get_texture("res/player.png");
 
-    SDL_Surface* playerSurf = IMG_Load("res/player.png");
-    if (!playerSurf) { std::cerr << SDL_GetError() << std::endl; return 1; }
-    gPlayerTexture = SDL_CreateTextureFromSurface(renderer, playerSurf);
-    SDL_DestroySurface(playerSurf);
+    b2BodyDef bodyDef;
+    b2ShapeDef shapeDef;
+    playerBody = getEntityBody(0,0, bodyDef, shapeDef);
+    invaderBody = getEntityBody( 10,0 , bodyDef, shapeDef);
 
     // === Entity Creation ===
     int player_id = SpaceInvadersGame::CreatePlayerEntity(WINDOW_WIDTH / 2.0f - PLAYER_WIDTH / 2.0f, WINDOW_HEIGHT - 60.0f);
@@ -132,8 +175,8 @@ int main() {
         SDL_Delay(16); // ~60 FPS
     }
 
-    SDL_DestroyTexture(gInvaderTexture);
-    SDL_DestroyTexture(gPlayerTexture);
+    SDL_DestroyTexture(invaderTexture);
+    SDL_DestroyTexture(playerTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
