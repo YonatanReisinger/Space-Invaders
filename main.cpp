@@ -155,6 +155,7 @@ int main() {
         SpaceInvadersGame::CollisionSystem();
         SpaceInvadersGame::HealthSystem();
         SpaceInvadersGame::ScoreSystem();
+        SpaceInvadersGame::DeleteOffscreenEntitiesSystem();
 
         // === Rendering ===
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

@@ -135,6 +135,7 @@ void ScoreSystem();
 void EnemyLogicSystem();
 void PlayerIntentSystem();
 void PlayerActionSystem();
+    void DeleteOffscreenEntitiesSystem();
 
 // === Entity creation ===
 

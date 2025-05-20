@@ -62,7 +62,6 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         //SDL_RenderPresent(renderer);
     }
 
-
     // Draw invaders
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
@@ -105,7 +104,24 @@ bool AreEntitiesPlayerAndEnemy(bagel::ent_type ent1, bagel::ent_type ent2){
             bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) ||
                 (bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit) &&
             bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit));
+    }
 
+bool IsEntityOutOfView(bagel::ent_type ent){
+        if (bagel::World::mask(ent).test(bagel::Component<Position>::Bit))
+        {
+            const auto& pos = bagel::World::getComponent<Position>(ent);
+            return pos.x < 0 || pos.x > WINDOW_WIDTH || pos.y < 0 || pos.y > WINDOW_HEIGHT;
+        }
+        return false;
+    }
+
+void DeleteOffscreenEntitiesSystem(){
+        for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
+            bagel::ent_type ent{id};
+            if (IsEntityOutOfView(ent)) {
+                //std::cerr << id << " Entity out of view!" << std::endl;
+                bagel::World::addComponent(ent, Dead{});
+            }}
     }
 /**
  * @brief Detects and handles collisions between entities.
@@ -226,6 +242,7 @@ void HealthSystem() {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) {
             bagel::World::destroyEntity(ent);
+            std::cout << id << " Entity Destroyed" << std::endl;
         }
     }
 }
