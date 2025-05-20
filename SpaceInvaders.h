@@ -70,6 +70,16 @@ struct PlayerTag {};
  */
 struct EnemyTag {};
 
+    /**
+ * @brief Tag for the player projectile entities (Tag).
+ */
+    struct PlayerProjectileTag {};
+
+    /**
+     * @brief Tag for enemy projectile entities (Tag).
+     */
+    struct EnemyProjectileTag {};
+
 /**
  * @brief Tag for projectile entities (Tag).
  */

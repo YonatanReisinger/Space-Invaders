@@ -21,4 +21,5 @@ constexpr float INVADER_MOVE_STEP = 20.0;
 constexpr int NUM_OF_INVADERS_TYPES = 3;
 constexpr int NUM_OF_INVADERS_POSTURES_PER_TYPE = 2;
 constexpr int CHANGE_INVADERS_POSTURE_SPEED = 30;
+constexpr int ENEMY_SHOOT_PROPABILITY = 1000;
 constexpr int DELAY_BEFORE_GAMEOVER = 1300;

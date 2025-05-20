@@ -8,14 +8,23 @@
 
 namespace SpaceInvadersGame {
 
+    static int invaderMoveInterval = INVADER_MOVE_INTERVAL;
+    static int enemyShootPropability = ENEMY_SHOOT_PROPABILITY;
+
+void whenEnemyDies()
+{
+    invaderMoveInterval -= 2;
+    enemyShootPropability -= 50;
+}
+
     //Returns a random number between 0 and n-1
-    int getRandomNumber(int n) {
+int getRandomNumber(int n) {
         static std::random_device rd;
         static std::mt19937 gen(rd()); // Static to avoid reseeding on every call
         std::uniform_int_distribution<> distrib(0, n);
 
         return distrib(gen);
-    }
+}
 // === Systems Implementations ===
 
 /**
@@ -92,7 +101,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
         SDL_FRect rect = {pos.x, pos.y, 6.0f, 16.0f};
-        if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
+        if (bagel::World::mask(ent).test(bagel::Component<PlayerProjectileTag>::Bit)) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow
         } else {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red
@@ -108,7 +117,18 @@ bool AreEntitiesPlayerAndEnemy(bagel::ent_type ent1, bagel::ent_type ent2){
         return (bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit) &&
             bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) ||
                 (bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit) &&
-            bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit));
+            bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit)) ||
+
+
+                (bagel::World::mask(ent1).test(bagel::Component<PlayerProjectileTag>::Bit) &&
+bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit)) ||
+    (bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit) &&
+bagel::World::mask(ent2).test(bagel::Component<PlayerProjectileTag>::Bit)) ||
+
+    (bagel::World::mask(ent1).test(bagel::Component<EnemyProjectileTag>::Bit) &&
+bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) ||
+    (bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit) &&
+bagel::World::mask(ent2).test(bagel::Component<EnemyProjectileTag>::Bit));
     }
 
 bool IsEntityOutOfView(bagel::ent_type ent){
@@ -120,7 +140,7 @@ bool IsEntityOutOfView(bagel::ent_type ent){
         return false;
     }
 
-    void ChangeEnemyPostureSystem()
+void ChangeEnemyPostureSystem()
     {
         static int step = 1;
         for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
@@ -129,16 +149,17 @@ bool IsEntityOutOfView(bagel::ent_type ent){
                 continue;
             auto& post = bagel::World::getComponent<PostureChanger>(ent);
             if (step == 0) {
-                post.postureId = ++post.postureId % NUM_OF_INVADERS_POSTURES_PER_TYPE;
+                post.postureId = (post.postureId + 1) % NUM_OF_INVADERS_POSTURES_PER_TYPE;
             }
         }
-        step = ++step % CHANGE_INVADERS_POSTURE_SPEED;
+        step = (step + 1) % CHANGE_INVADERS_POSTURE_SPEED;
     }
 
 void DeleteOffscreenEntitiesSystem(){
         for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
             bagel::ent_type ent{id};
-            if (IsEntityOutOfView(ent)) {
+            if (IsEntityOutOfView(ent) &&
+                bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit)){
                 //std::cerr << id << " Entity out of view!" << std::endl;
                 bagel::World::addComponent(ent, Dead{});
             }}
@@ -260,9 +281,12 @@ void HealthSystem() {
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) {
+            if (bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit))
+                whenEnemyDies();
             bagel::World::destroyEntity(ent);
             std::cout << id << " Entity Destroyed" << std::endl;
         }
+
     }
 }
 
@@ -290,9 +314,10 @@ void ScoreSystem() {
 void EnemyLogicSystem() {
     static int invaderMoveCounter = 0;
     static int invaderDir = 1; // 1=right, -1=left
+    int numOfInvaders = 0;
 
     invaderMoveCounter++;
-    if (invaderMoveCounter >= INVADER_MOVE_INTERVAL) {
+    if (invaderMoveCounter >= invaderMoveInterval) {
         invaderMoveCounter = 0;
         float minX = 800.0f, maxX = 0.0f;
         for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
@@ -301,11 +326,13 @@ void EnemyLogicSystem() {
                 !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
                 continue;
             }
+            ++numOfInvaders;
             auto& pos = bagel::World::getComponent<Position>(ent);
             pos.x += invaderDir * INVADER_MOVE_STEP;
             if (pos.x < minX) minX = pos.x;
             if (pos.x + 40.0f > maxX) maxX = pos.x + 40.0f;
         }
+
         if (minX < 10.0f || maxX > 790.0f) {
             invaderDir *= -1;
             for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
@@ -329,7 +356,7 @@ void EnemyLogicSystem() {
             continue;
         }
         auto& shoots = bagel::World::getComponent<Shoots>(ent);
-        if (rand() % 300 == 0) {
+        if (rand() % enemyShootPropability == 0) {
             shoots.value = true;
         } else {
             shoots.value = false;
@@ -441,9 +468,9 @@ int CreateProjectileEntity(float pos_x, float pos_y, float vel_x, float vel_y, b
         Health{1}
     );
     if (isPlayer) {
-        proj.add(PlayerTag{});
+        proj.add(PlayerProjectileTag{});
     } else {
-        proj.add(EnemyTag{});
+        proj.add(EnemyProjectileTag{});
     }
     std::cout << "Created Projectile Entity with ID: " << proj.entity().id << std::endl;
     return proj.entity().id;
