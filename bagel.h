@@ -14,7 +14,7 @@ namespace bagel
 		bool	CallbackOnDestroy = true;
 		bool	DynamicResize = false;
 		int		IdBagSize = 5;
-		int		InitialEntities = 1000;
+		int		InitialEntities = 1000000;
 		int		InitialPackedSize = 5;
 		int		MaxComponents = 100;
 	};

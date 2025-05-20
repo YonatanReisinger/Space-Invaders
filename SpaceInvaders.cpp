@@ -258,32 +258,33 @@ void HealthSystem() {
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) {
-            if (bagel::World::mask(ent).test(bagel::Component<Position>::Bit))
-                bagel::World::delComponent<Position>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit))
-                bagel::World::delComponent<Velocity>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<Collider>::Bit))
-                bagel::World::delComponent<Collider>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit))
-                bagel::World::delComponent<RenderData>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit))
-                bagel::World::delComponent<PlayerTag>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit))
-                bagel::World::delComponent<EnemyTag>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit))
-                bagel::World::delComponent<ProjectileTag>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<Input>::Bit))
-                bagel::World::delComponent<Input>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<Health>::Bit))
-                bagel::World::delComponent<Health>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<ScoreValue>::Bit))
-                bagel::World::delComponent<ScoreValue>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit))
-                bagel::World::delComponent<Shoots>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<EnemyPath>::Bit))
-                bagel::World::delComponent<EnemyPath>(ent);
-            if (bagel::World::mask(ent).test(bagel::Component<WantsToShoot>::Bit))
-                bagel::World::delComponent<WantsToShoot>(ent);
+            bagel::World::destroyEntity(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Position>::Bit))
+            //     bagel::World::delComponent<Position>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit))
+            //     bagel::World::delComponent<Velocity>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Collider>::Bit))
+            //     bagel::World::delComponent<Collider>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit))
+            //     bagel::World::delComponent<RenderData>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit))
+            //     bagel::World::delComponent<PlayerTag>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit))
+            //     bagel::World::delComponent<EnemyTag>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit))
+            //     bagel::World::delComponent<ProjectileTag>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Input>::Bit))
+            //     bagel::World::delComponent<Input>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Health>::Bit))
+            //     bagel::World::delComponent<Health>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<ScoreValue>::Bit))
+            //     bagel::World::delComponent<ScoreValue>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit))
+            //     bagel::World::delComponent<Shoots>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<EnemyPath>::Bit))
+            //     bagel::World::delComponent<EnemyPath>(ent);
+            // if (bagel::World::mask(ent).test(bagel::Component<WantsToShoot>::Bit))
+            //     bagel::World::delComponent<WantsToShoot>(ent);
         }
     }
 }
