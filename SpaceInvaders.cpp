@@ -48,6 +48,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
     // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
+        if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) continue;
         if (!bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit) ||
@@ -66,6 +67,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
     // Draw invaders
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
+        if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) continue;
         if (!bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<RenderData>::Bit) ||
@@ -83,6 +85,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
     // Draw projectiles
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
+        if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) continue;
         if (!bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit) ||
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
             continue;
@@ -126,21 +129,59 @@ void CollisionSystem() {
                 pos1.x + col1.width > pos2.x &&
                 pos1.y < pos2.y + col2.height &&
                 pos1.y + col1.height > pos2.y) {
-                // Collision detected
-                if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
-                    auto& health1 = bagel::World::getComponent<Health>(ent1);
-                    health1.hp--;
-                    if (health1.hp <= 0) {
-                        bagel::World::addComponent<Dead>(ent1, Dead{});
+                // Case 1: Player bullet hits enemy
+                if (bagel::World::mask(ent1).test(bagel::Component<ProjectileTag>::Bit) &&
+                    bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit) &&
+                    bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit)) {
+                    if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
+                        auto& health2 = bagel::World::getComponent<Health>(ent2);
+                        health2.hp--;
+                        if (health2.hp <= 0) {
+                            bagel::World::addComponent<Dead>(ent2, Dead{});
+                        }
                     }
+                    bagel::World::addComponent<Dead>(ent1, Dead{}); // Destroy bullet
                 }
-                if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
-                    auto& health2 = bagel::World::getComponent<Health>(ent2);
-                    health2.hp--;
-                    if (health2.hp <= 0) {
-                        bagel::World::addComponent<Dead>(ent2, Dead{});
+                // Case 1 (reverse): Player bullet hits enemy
+                else if (bagel::World::mask(ent2).test(bagel::Component<ProjectileTag>::Bit) &&
+                         bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit) &&
+                         bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit)) {
+                    if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
+                        auto& health1 = bagel::World::getComponent<Health>(ent1);
+                        health1.hp--;
+                        if (health1.hp <= 0) {
+                            bagel::World::addComponent<Dead>(ent1, Dead{});
+                        }
                     }
+                    bagel::World::addComponent<Dead>(ent2, Dead{}); // Destroy bullet
                 }
+                // Case 2: Enemy bullet hits player
+                else if (bagel::World::mask(ent1).test(bagel::Component<ProjectileTag>::Bit) &&
+                         bagel::World::mask(ent1).test(bagel::Component<EnemyTag>::Bit) &&
+                         bagel::World::mask(ent2).test(bagel::Component<PlayerTag>::Bit)) {
+                    if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
+                        auto& health2 = bagel::World::getComponent<Health>(ent2);
+                        health2.hp--;
+                        if (health2.hp <= 0) {
+                            bagel::World::addComponent<Dead>(ent2, Dead{});
+                        }
+                    }
+                    bagel::World::addComponent<Dead>(ent1, Dead{}); // Destroy bullet
+                }
+                // Case 2 (reverse): Enemy bullet hits player
+                else if (bagel::World::mask(ent2).test(bagel::Component<ProjectileTag>::Bit) &&
+                         bagel::World::mask(ent2).test(bagel::Component<EnemyTag>::Bit) &&
+                         bagel::World::mask(ent1).test(bagel::Component<PlayerTag>::Bit)) {
+                    if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
+                        auto& health1 = bagel::World::getComponent<Health>(ent1);
+                        health1.hp--;
+                        if (health1.hp <= 0) {
+                            bagel::World::addComponent<Dead>(ent1, Dead{});
+                        }
+                    }
+                    bagel::World::addComponent<Dead>(ent2, Dead{}); // Destroy bullet
+                }
+                // All other collisions: do nothing
             }
         }
     }
@@ -363,7 +404,7 @@ int CreateEnemyEntity(float pos_x, float pos_y, int score) {
         Position{pos_x, pos_y},
         Velocity{0.0f, 0.0f},
         RenderData{0},
-        Collider{1.0f, 1.0f},
+        Collider{40.0f, 30.0f},
         EnemyTag{},
         Health{1},
         ScoreValue{score},
@@ -384,7 +425,7 @@ int CreateProjectileEntity(float pos_x, float pos_y, float vel_x, float vel_y, b
         Position{pos_x, pos_y},
         Velocity{vel_x, vel_y},
         RenderData{2},
-        Collider{0.2f, 0.5f},
+        Collider{6.0f, 16.0f},
         ProjectileTag{}
     );
     if (isPlayer) {
