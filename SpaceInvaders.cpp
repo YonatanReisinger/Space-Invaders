@@ -199,8 +199,8 @@ void CollisionSystem() {
                 pos1.y + col1.height > pos2.y &&
                 AreEntitiesPlayerAndEnemy(ent1, ent2)) {
                 // Collision detected
-                checkIfEntityIsPlayerAndPrintMessage(ent1, "Player hit", ent2);
-                checkIfEntityIsPlayerAndPrintMessage(ent2, "Player hit", ent1);
+                checkIfEntityIsPlayerAndPrintMessage(ent1, "Player hit ", ent2);
+                checkIfEntityIsPlayerAndPrintMessage(ent2, "Player hit ", ent1);
 
                 if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
                     auto& health1 = bagel::World::getComponent<Health>(ent1);
@@ -231,7 +231,7 @@ void PlayerShootingSystem() {
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit) &&
-            bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
+            bagel::World::mask(ent).test(bagel::Component<PlayerProjectileTag>::Bit)) {
             playerBulletExists = true;
             break;
         }
@@ -470,10 +470,17 @@ int CreateEnemyEntity(float pos_x, float pos_y, int score) {
  */
 int CreateProjectileEntity(float pos_x, float pos_y, float vel_x, float vel_y, bool isPlayer) {
     bagel::Entity proj = bagel::Entity::create();
+    while (proj.entity().id <= 1)
+        {
+            //bagel::World::destroyEntity(proj.entity());
+        //std::cerr << "Created Projectile 1 and changed" << std::endl;
+            proj = bagel::Entity::create();
+        }
+
     proj.addAll(
         Position{pos_x, pos_y},
         Velocity{vel_x, vel_y},
-        RenderData{2},
+        RenderData{4},
         Collider{0.2f, 0.5f},
         ProjectileTag{},
         Health{1}

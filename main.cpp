@@ -50,12 +50,9 @@ SDL_Texture* get_texture(const char* SheetPath)
         return nullptr;
     }
 
-    // if (color != nullptr)
-    // {
-    //     Uint32 colorKey = SDL_MapRGB(SDL_GetPixelFormatDetails(surf->format),
-    //         nullptr, color->r, color->g, color->b);
-    //     SDL_SetSurfaceColorKey(surf, true, colorKey);
-    // }
+    Uint32 colorKey = SDL_MapRGB(SDL_GetPixelFormatDetails(surf->format),
+        nullptr, 40, 40, 40);
+    SDL_SetSurfaceColorKey(surf, true, colorKey);
 
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surf);
     if (texture == nullptr) {
@@ -180,7 +177,7 @@ int main() {
         SpaceInvadersGame::CollisionSystem();
         SpaceInvadersGame::HealthSystem();
         SpaceInvadersGame::ScoreSystem();
-        SpaceInvadersGame::DeleteOffscreenEntitiesSystem();
+        //SpaceInvadersGame::DeleteOffscreenEntitiesSystem();
 
         // === Rendering ===
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
