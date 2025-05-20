@@ -34,11 +34,8 @@ void MovementSystem() {
 void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
     SDL_FRect invaderSpriteRects[], SDL_FRect playerSpriteRect) {
 
-
-    // bagel::ent_type player{1};
-    // assert(bagel::World::mask(player).test(bagel::Component<Position>::Bit) &&
-    //     "Should Return True");
-
+    //SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderClear(renderer);
     // Draw player
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
@@ -49,8 +46,12 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
         SDL_FRect dest = {pos.x, pos.y, (float)60, (float)20};
-        SDL_RenderTexture(renderer, gPlayerTexture, &playerSpriteRect, &dest);
+        //SDL_RenderClear(renderer);
+        if (!SDL_RenderTexture(renderer, gPlayerTexture, &playerSpriteRect, &dest))
+            std::cerr << "RenderTexture failed: " << SDL_GetError() << std::endl;
+        //SDL_RenderPresent(renderer);
     }
+
 
     // Draw invaders
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
@@ -64,7 +65,8 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         const auto& rend = bagel::World::getComponent<RenderData>(ent);
         int spriteIdx = rend.spriteId % 5;
         SDL_FRect dest = {pos.x, pos.y, (float)40, (float)30};
-        SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx], &dest);
+        if (!SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx], &dest))
+            std::cerr << "RenderTexture failed: " << SDL_GetError() << std::endl;
     }
 
     // Draw projectiles
@@ -75,14 +77,16 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
             continue;
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
+        SDL_FRect rect = {pos.x, pos.y, 6.0f, 16.0f};
         if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow
         } else {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red
         }
-        SDL_FRect rect = {pos.x, pos.y, 6.0f, 16.0f};
-        SDL_RenderFillRect(renderer, &rect);
+        if (!SDL_RenderFillRect(renderer, &rect))
+            std::cerr << "RenderFillRect failed: " << SDL_GetError() << std::endl;
     }
+    SDL_RenderPresent(renderer);
 }
 
 /**
@@ -345,7 +349,7 @@ int CreateEnemyEntity(float pos_x, float pos_y, int score) {
     enemy.addAll(
         Position{pos_x, pos_y},
         Velocity{0.0f, 0.0f},
-        RenderData{1},
+        RenderData{0},
         Collider{1.0f, 1.0f},
         EnemyTag{},
         Health{1},

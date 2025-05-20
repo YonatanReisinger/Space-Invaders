@@ -102,7 +102,6 @@ int main() {
     // === Entity Creation ===
     bagel::World::createEntity(); //Created So Player Entity won't have the id 0.
     int player_id = SpaceInvadersGame::CreatePlayerEntity(WINDOW_WIDTH / 2.0f - PLAYER_WIDTH / 2.0f, WINDOW_HEIGHT - 60.0f);
-    //int player_id = SpaceInvadersGame::CreatePlayerEntity(0, 0);
     bagel::Entity player_entity(bagel::ent_type{player_id});
     player_entity.get<SpaceInvadersGame::Collider>().width = PLAYER_WIDTH;
     player_entity.get<SpaceInvadersGame::Collider>().height = PLAYER_HEIGHT;
@@ -159,10 +158,8 @@ int main() {
 
         // === Rendering ===
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
         SpaceInvadersGame::RenderSystem(renderer, invaderTexture, playerTexture,
             invaderSpriteRects, playerSpriteRect);
-        SDL_RenderPresent(renderer);
 
         // Stop updating the game after game over
         if (!player_entity.has<SpaceInvadersGame::Health>()) {
