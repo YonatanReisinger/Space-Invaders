@@ -73,7 +73,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
         }
         const auto& pos = bagel::World::getComponent<Position>(ent);
         const auto& rend = bagel::World::getComponent<RenderData>(ent);
-        int spriteIdx = rend.spriteId % 5;
+        int spriteIdx = rend.spriteId % NUM_OF_INVADERS_TYPES;
         SDL_FRect dest = {pos.x, pos.y, (float)40, (float)30};
         if (!SDL_RenderTexture(renderer, gInvaderTexture, &invaderSpriteRects[spriteIdx], &dest))
             std::cerr << "RenderTexture failed: " << SDL_GetError() << std::endl;

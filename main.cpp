@@ -24,12 +24,10 @@ constexpr float TEX_SCALE = 3;
 constexpr SDL_FRect PLAYER_REC = {16,16, 42, 56};
 b2WorldId world;
 
-SDL_FRect invaderSpriteRects[5] = {
-    {25, 117, 39, 27},
-    {75, 114, 39, 27},
-    {25, 117, 39, 27},
-    {75, 114, 39, 27},
-{25, 117, 39, 27}
+SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES] = {
+    {5, 1, 8, 8},
+    {22, 1, 11, 8},
+    {39, 1, 13, 8},
 };
 SDL_FRect playerSpriteRect = PLAYER_REC;
 
@@ -87,7 +85,7 @@ int main() {
         return 1;
     }
 
-    invaderTexture = get_texture("res/invaders.png");
+    invaderTexture = get_texture("res/invaders2.png");
     playerTexture = get_texture("res/player.png");
 
     b2WorldDef worldDef = b2DefaultWorldDef();
@@ -117,7 +115,7 @@ int main() {
             bagel::Entity invader_entity(bagel::ent_type{invader_id});
             invader_entity.get<SpaceInvadersGame::Collider>().width = INVADER_WIDTH;
             invader_entity.get<SpaceInvadersGame::Collider>().height = INVADER_HEIGHT;
-            invader_entity.get<SpaceInvadersGame::RenderData>().spriteId = (row + col) % 5;
+            invader_entity.get<SpaceInvadersGame::RenderData>().spriteId = (row) % NUM_OF_INVADERS_TYPES;
         }
     }
 
