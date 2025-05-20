@@ -30,6 +30,17 @@ SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES][NUM_OF_INVADERS_POSTURES_PER
     {{39, 1, 13, 8}, {39, 11, 13, 8}}
     };
 SDL_FRect playerSpriteRect = PLAYER_REC;
+SDL_FRect gameOverSpriteRects[] = {
+    {61, 69, 8, 8}, //G
+{1, 69, 8, 8}, //A
+{41, 79, 8, 8}, //M
+{41, 69, 8, 8}, //E
+{21, 119, 8, 8}, //[SPACE]
+{61, 79, 8, 8}, //O
+{51, 89, 8, 8}, //V
+{41, 69, 8, 8}, //E
+{11, 89, 8, 8}, //R
+};
 
 SDL_Texture* get_texture(const char* SheetPath)
 {
@@ -70,6 +81,16 @@ b2BodyId getEntityBody(int x, int y, b2BodyDef& bodyDef, b2ShapeDef& shapeDef)
     b2CreatePolygonShape(body, &shapeDef, &shape);
 
     return body;
+}
+
+void printGameOver()
+{
+    SDL_FRect dest = {290, 290, 8 * TEX_SCALE, 8 * TEX_SCALE}; // scale if needed
+    for (SDL_FRect rect : gameOverSpriteRects) {
+        SDL_RenderTexture(renderer, invaderTexture, &rect, &dest);
+        dest.x += 8 * TEX_SCALE; // scale x offset too
+    }
+    SDL_RenderPresent(renderer); // <-- THIS is crucial
 }
 
 int main() {
@@ -163,7 +184,11 @@ int main() {
 
         // Stop updating the game after game over
         if (!player_entity.has<SpaceInvadersGame::Health>()) {
+            SDL_Delay(DELAY_BEFORE_GAMEOVER);
             while (true) {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
+                printGameOver();
                 while (SDL_PollEvent(&e)) {
                     if (e.type == SDL_EVENT_QUIT) {
                         quit = true;
