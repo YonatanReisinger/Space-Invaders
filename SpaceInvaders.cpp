@@ -16,6 +16,13 @@ void whenEnemyDies()
     invaderMoveInterval -= 2;
     enemyShootPropability -= 50;
 }
+//For Testing
+void checkIfEntityIsPlayerAndPrintMessage(bagel::ent_type ent, const std::string& message, bagel::ent_type ent2)
+{
+    if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit)) {
+        std::cerr << message << "ent2: " << ent2.id << std::endl;
+    }
+}
 
     //Returns a random number between 0 and n-1
 int getRandomNumber(int n) {
@@ -192,6 +199,9 @@ void CollisionSystem() {
                 pos1.y + col1.height > pos2.y &&
                 AreEntitiesPlayerAndEnemy(ent1, ent2)) {
                 // Collision detected
+                checkIfEntityIsPlayerAndPrintMessage(ent1, "Player hit", ent2);
+                checkIfEntityIsPlayerAndPrintMessage(ent2, "Player hit", ent1);
+
                 if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
                     auto& health1 = bagel::World::getComponent<Health>(ent1);
                     health1.hp--;
@@ -283,10 +293,11 @@ void HealthSystem() {
         if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit)) {
             if (bagel::World::mask(ent).test(bagel::Component<EnemyTag>::Bit))
                 whenEnemyDies();
+            else if (bagel::World::mask(ent).test(bagel::Component<PlayerTag>::Bit))
+                std::cerr << "Player dead" << std::endl;
             bagel::World::destroyEntity(ent);
             std::cout << id << " Entity Destroyed" << std::endl;
         }
-
     }
 }
 
@@ -379,8 +390,8 @@ void PlayerIntentSystem() {
         const auto& input = bagel::World::getComponent<Input>(ent);
         auto& vel = bagel::World::getComponent<Velocity>(ent);
         vel.x = 0.0f;
-        if (input.leftPressed) vel.x = -6.0f;
-        if (input.rightPressed) vel.x = 6.0f;
+        if (input.leftPressed) vel.x = -PLAYER_SPEED;
+        if (input.rightPressed) vel.x = PLAYER_SPEED;
     }
 }
 

@@ -12,7 +12,7 @@ namespace bagel
 	{
 		bool	AggregateUpdates = true;
 		bool	CallbackOnDestroy = true;
-		bool	DynamicResize = false;
+		bool	DynamicResize = true;
 		int		IdBagSize = 5;
 		int		InitialEntities = 3000000;
 		int		InitialPackedSize = 5;

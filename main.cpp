@@ -144,12 +144,17 @@ int main() {
     bool quit = false;
     SDL_Event e;
 
+    //int speed = 16;
+    //int step = 0;
+    const bool *keystates = SDL_GetKeyboardState(NULL);
     while (!quit) {
         // --- Input Handling ---
+        SDL_PumpEvents(); // Make sure keyboard state is up to date
+
         SpaceInvadersGame::Input& player_input = player_entity.get<SpaceInvadersGame::Input>();
-        player_input.leftPressed = false;
-        player_input.rightPressed = false;
-        player_input.firePressed = false;
+        player_input.leftPressed = keystates[SDL_SCANCODE_LEFT];
+        player_input.rightPressed = keystates[SDL_SCANCODE_RIGHT];
+        player_input.firePressed = keystates[SDL_SCANCODE_SPACE];
 
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT) quit = true;
