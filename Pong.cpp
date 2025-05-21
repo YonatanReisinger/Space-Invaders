@@ -194,8 +194,8 @@ namespace pong
 
 		for (ent_type e{0}; e.id <= World::maxId().id; ++e.id) {
 			if (World::mask(e).test(mask)) {
-				const auto& k = World::getComponent<Keys>(e);
-				auto& i = World::getComponent<Intent>(e);
+				const Keys& k = World::getComponent<Keys>(e);
+				Intent& i = World::getComponent<Intent>(e);
 
 				i.up = keys[k.up];
 				i.down = keys[k.down];
@@ -211,8 +211,8 @@ namespace pong
 
 		for (ent_type e{0}; e.id <= World::maxId().id; ++e.id) {
 			if (World::mask(e).test(mask)) {
-				const auto& i = World::getComponent<Intent>(e);
-				const auto& c = World::getComponent<Collider>(e);
+				const Intent& i = World::getComponent<Intent>(e);
+				const Collider& c = World::getComponent<Collider>(e);
 
 				const float f = i.up ? -30 : i.down ? 30 : 0;
 				b2Body_SetLinearVelocity(c.b, {0,f});
@@ -245,7 +245,7 @@ namespace pong
 		for (int i = 0; i < se.endCount; ++i) {
 			// score, recreate ball
 			b2BodyId b = b2Shape_GetBody(se.endEvents[i].visitorShapeId);
-			auto *e = static_cast<ent_type*>(b2Body_GetUserData(b));
+			ent_type *e = static_cast<ent_type*>(b2Body_GetUserData(b));
 			World::destroyEntity(*e);
 			b2DestroyBody(b);
 
@@ -263,8 +263,8 @@ namespace pong
 
 		for (ent_type e{0}; e.id <= World::maxId().id; ++e.id) {
 			if (World::mask(e).test(mask)) {
-				const auto& d = World::getComponent<Drawable>(e);
-				const auto& t = World::getComponent<Transform>(e);
+				const Drawable& d = World::getComponent<Drawable>(e);
+				const Transform& t = World::getComponent<Transform>(e);
 
 				const SDL_FRect dst = {
 					t.p.x-d.size.x/2,

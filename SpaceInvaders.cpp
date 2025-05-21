@@ -45,8 +45,8 @@ void MovementSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit)) {
             continue;
         }
-        auto& pos = bagel::World::getComponent<Position>(ent);
-        const auto& vel = bagel::World::getComponent<Velocity>(ent);
+        Position& pos = bagel::World::getComponent<Position>(ent);
+        const Velocity& vel = bagel::World::getComponent<Velocity>(ent);
         pos.x += vel.x;
         pos.y += vel.y;
     }
@@ -70,7 +70,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
             bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit)) {
             continue;
         }
-        const auto& pos = bagel::World::getComponent<Position>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
         SDL_FRect dest = {pos.x, pos.y, (float)60, (float)20};
         //SDL_RenderClear(renderer);
         if (!SDL_RenderTexture(renderer, gPlayerTexture, &playerSpriteRect, &dest))
@@ -89,9 +89,9 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
             continue;
         }
 
-        const auto& pos = bagel::World::getComponent<Position>(ent);
-        const auto& rend = bagel::World::getComponent<RenderData>(ent);
-        const auto& posture = bagel::World::getComponent<PostureChanger>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
+        const RenderData& rend = bagel::World::getComponent<RenderData>(ent);
+        const PostureChanger& posture = bagel::World::getComponent<PostureChanger>(ent);
         int spriteIdx = rend.spriteId % NUM_OF_INVADERS_TYPES;
         int postureIdx = posture.postureId;
         SDL_FRect dest = {pos.x, pos.y, (float)40, (float)30};
@@ -106,7 +106,7 @@ void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Text
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
             continue;
         }
-        const auto& pos = bagel::World::getComponent<Position>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
         SDL_FRect rect = {pos.x, pos.y, 6.0f, 16.0f};
         if (bagel::World::mask(ent).test(bagel::Component<PlayerProjectileTag>::Bit)) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // Yellow
@@ -141,7 +141,7 @@ bagel::World::mask(ent2).test(bagel::Component<EnemyProjectileTag>::Bit));
 bool IsEntityOutOfView(bagel::ent_type ent){
         if (bagel::World::mask(ent).test(bagel::Component<Position>::Bit))
         {
-            const auto& pos = bagel::World::getComponent<Position>(ent);
+            const Position& pos = bagel::World::getComponent<Position>(ent);
             return pos.x < 0 || pos.x > WINDOW_WIDTH || pos.y < 0 || pos.y > WINDOW_HEIGHT;
         }
         return false;
@@ -154,7 +154,7 @@ void ChangeEnemyPostureSystem()
             bagel::ent_type ent{id};
             if (!bagel::World::mask(ent).test(bagel::Component<PostureChanger>::Bit))
                 continue;
-            auto& post = bagel::World::getComponent<PostureChanger>(ent);
+            PostureChanger& post = bagel::World::getComponent<PostureChanger>(ent);
             if (step == 0) {
                 post.postureId = (post.postureId + 1) % NUM_OF_INVADERS_POSTURES_PER_TYPE;
             }
@@ -183,16 +183,16 @@ void CollisionSystem() {
             !bagel::World::mask(ent1).test(bagel::Component<Collider>::Bit)) {
             continue;
         }
-        const auto& pos1 = bagel::World::getComponent<Position>(ent1);
-        const auto& col1 = bagel::World::getComponent<Collider>(ent1);
+        const Position& pos1 = bagel::World::getComponent<Position>(ent1);
+        const Collider& col1 = bagel::World::getComponent<Collider>(ent1);
         for (bagel::id_type id2 = id1 + 1; id2 <= bagel::World::maxId().id; ++id2) {
             bagel::ent_type ent2{id2};
             if (!bagel::World::mask(ent2).test(bagel::Component<Position>::Bit) ||
                 !bagel::World::mask(ent2).test(bagel::Component<Collider>::Bit)) {
                 continue;
             }
-            const auto& pos2 = bagel::World::getComponent<Position>(ent2);
-            const auto& col2 = bagel::World::getComponent<Collider>(ent2);
+            const Position& pos2 = bagel::World::getComponent<Position>(ent2);
+            const Collider& col2 = bagel::World::getComponent<Collider>(ent2);
             if (pos1.x < pos2.x + col2.width &&
                 pos1.x + col1.width > pos2.x &&
                 pos1.y < pos2.y + col2.height &&
@@ -203,14 +203,14 @@ void CollisionSystem() {
                 checkIfEntityIsPlayerAndPrintMessage(ent2, "Player hit ", ent1);
 
                 if (bagel::World::mask(ent1).test(bagel::Component<Health>::Bit)) {
-                    auto& health1 = bagel::World::getComponent<Health>(ent1);
+                    Health& health1 = bagel::World::getComponent<Health>(ent1);
                     health1.hp--;
                     if (health1.hp <= 0) {
                         bagel::World::addComponent(ent1, Dead{});
                     }
                 }
                 if (bagel::World::mask(ent2).test(bagel::Component<Health>::Bit)) {
-                    auto& health2 = bagel::World::getComponent<Health>(ent2);
+                    Health& health2 = bagel::World::getComponent<Health>(ent2);
                     health2.hp--;
                     if (health2.hp <= 0) {
                         bagel::World::addComponent(ent2, Dead{});
@@ -226,8 +226,8 @@ void CollisionSystem() {
  * Required: PlayerTag, Shoots, Position, WantsToShoot
  */
 void PlayerShootingSystem() {
-    // Only allow one player bullet at a time (like the original demo)
     bool playerBulletExists = false;
+
     for (bagel::id_type id = 0; id <= bagel::World::maxId().id; ++id) {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<ProjectileTag>::Bit) &&
@@ -244,8 +244,8 @@ void PlayerShootingSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
             continue;
         }
-        const auto& input = bagel::World::getComponent<Input>(ent);
-        const auto& pos = bagel::World::getComponent<Position>(ent);
+        const Input& input = bagel::World::getComponent<Input>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
         if (input.firePressed && !playerBulletExists) {
             // Fire a bullet from the center top of the player
             SpaceInvadersGame::CreateProjectileEntity(
@@ -269,8 +269,8 @@ void EnemyShootingSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
             continue;
         }
-        const auto& pos = bagel::World::getComponent<Position>(ent);
-        const auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
+        const Shoots& shoots = bagel::World::getComponent<Shoots>(ent);
 
         if (shoots.value) {
             // Fire a bullet from the center bottom of the enemy
@@ -311,7 +311,7 @@ void ScoreSystem() {
         bagel::ent_type ent{id};
         if (bagel::World::mask(ent).test(bagel::Component<Dead>::Bit) &&
             bagel::World::mask(ent).test(bagel::Component<ScoreValue>::Bit)) {
-            const auto& scoreVal = bagel::World::getComponent<ScoreValue>(ent);
+            const ScoreValue& scoreVal = bagel::World::getComponent<ScoreValue>(ent);
             score += scoreVal.value;
             std::cout << "Score: " << score << std::endl;
         }
@@ -338,7 +338,7 @@ void EnemyLogicSystem() {
                 continue;
             }
             ++numOfInvaders;
-            auto& pos = bagel::World::getComponent<Position>(ent);
+            Position& pos = bagel::World::getComponent<Position>(ent);
             pos.x += invaderDir * INVADER_MOVE_STEP;
             if (pos.x < minX) minX = pos.x;
             if (pos.x + 40.0f > maxX) maxX = pos.x + 40.0f;
@@ -352,7 +352,7 @@ void EnemyLogicSystem() {
                     !bagel::World::mask(ent).test(bagel::Component<Position>::Bit)) {
                     continue;
                     }
-                auto& pos = bagel::World::getComponent<Position>(ent);
+                Position& pos = bagel::World::getComponent<Position>(ent);
                 pos.y += INVADER_DROP_STEP;
             }
         }
@@ -366,7 +366,7 @@ void EnemyLogicSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
             continue;
         }
-        auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        Shoots& shoots = bagel::World::getComponent<Shoots>(ent);
         if (rand() % enemyShootPropability == 0) {
             shoots.value = true;
         } else {
@@ -387,8 +387,8 @@ void PlayerIntentSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Velocity>::Bit)) {
             continue;
         }
-        const auto& input = bagel::World::getComponent<Input>(ent);
-        auto& vel = bagel::World::getComponent<Velocity>(ent);
+        const Input& input = bagel::World::getComponent<Input>(ent);
+        Velocity& vel = bagel::World::getComponent<Velocity>(ent);
         vel.x = 0.0f;
         if (input.leftPressed) vel.x = -PLAYER_SPEED;
         if (input.rightPressed) vel.x = PLAYER_SPEED;
@@ -408,9 +408,9 @@ void PlayerActionSystem() {
             !bagel::World::mask(ent).test(bagel::Component<Shoots>::Bit)) {
             continue;
         }
-        const auto& input = bagel::World::getComponent<Input>(ent);
-        const auto& pos = bagel::World::getComponent<Position>(ent);
-        auto& shoots = bagel::World::getComponent<Shoots>(ent);
+        const Input& input = bagel::World::getComponent<Input>(ent);
+        const Position& pos = bagel::World::getComponent<Position>(ent);
+        Shoots& shoots = bagel::World::getComponent<Shoots>(ent);
         if (input.firePressed && !shoots.value) {
             shoots.value = true;
             // Create a projectile

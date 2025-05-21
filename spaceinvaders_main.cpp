@@ -132,7 +132,7 @@ int main() {
         if (!firePressed) canFire = true;
 
         // --- Move player bullets ---
-        for (auto& b : playerBullets) {
+        for (Bullet& b : playerBullets) {
             if (b.alive) b.y += b.vy;
             if (b.y + b.h < 0) b.alive = false;
         }
@@ -141,7 +141,7 @@ int main() {
         invaderMoveCounter++;
         if (invaderMoveCounter >= INVADER_MOVE_INTERVAL) {
             int minX = WINDOW_WIDTH, maxX = 0;
-            for (auto& inv : invaders) {
+            for (Entity& inv : invaders) {
                 if (!inv.alive) continue;
                 inv.x += invaderDir * 20;
                 if (inv.x < minX) minX = inv.x;
@@ -154,7 +154,7 @@ int main() {
         // --- Invader shooting (random) ---
         if (rand() % 60 == 0) { // random chance
             std::vector<Entity*> shooters;
-            for (auto& inv : invaders) if (inv.alive) shooters.push_back(&inv);
+            for (Entity& inv : invaders) if (inv.alive) shooters.push_back(&inv);
             if (!shooters.empty()) {
                 Entity* shooter = shooters[rand() % shooters.size()];
                 invaderBullets.push_back({shooter->x + shooter->w/2 - BULLET_WIDTH/2, shooter->y + shooter->h, BULLET_WIDTH, BULLET_HEIGHT, INVADER_BULLET_SPEED, true});
@@ -162,15 +162,15 @@ int main() {
         }
 
         // --- Move invader bullets ---
-        for (auto& b : invaderBullets) {
+        for (Bullet& b : invaderBullets) {
             if (b.alive) b.y += b.vy;
             if (b.y > WINDOW_HEIGHT) b.alive = false;
         }
 
         // --- Collision: player bullets vs invaders ---
-        for (auto& b : playerBullets) {
+        for (Bullet& b : playerBullets) {
             if (!b.alive) continue;
-            for (auto& inv : invaders) {
+            for (Entity& inv : invaders) {
                 if (!inv.alive) continue;
                 SDL_Rect br{b.x, b.y, b.w, b.h};
                 SDL_Rect ir{inv.x, inv.y, inv.w, inv.h};
@@ -182,7 +182,7 @@ int main() {
         }
 
         // --- Collision: invader bullets vs player ---
-        for (auto& b : invaderBullets) {
+        for (Bullet& b : invaderBullets) {
             if (!b.alive) continue;
             SDL_Rect br{b.x, b.y, b.w, b.h};
             SDL_Rect pr{player.x, player.y, player.w, player.h};
@@ -200,7 +200,7 @@ int main() {
 
         // --- Check for win: all invaders dead ---
         bool allInvadersDead = true;
-        for (const auto& inv : invaders) {
+        for (const Entity& inv : invaders) {
             if (inv.alive) {
                 allInvadersDead = false;
                 break;
@@ -227,7 +227,7 @@ int main() {
 
         // Draw invaders
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for (const auto& inv : invaders) {
+        for (const Entity& inv : invaders) {
             if (!inv.alive) continue;
             SDL_FRect dest = {(float)inv.x, (float)inv.y, (float)inv.w, (float)inv.h};
             SDL_RenderTexture(renderer, invaderTexture, &invaderSpriteRects[inv.patternIndex], &dest);
@@ -235,7 +235,7 @@ int main() {
 
         // Draw player bullets
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-        for (const auto& b : playerBullets) {
+        for (const Bullet& b : playerBullets) {
             if (!b.alive) continue;
             SDL_FRect rect{(float)b.x, (float)b.y, (float)b.w, (float)b.h};
             SDL_RenderFillRect(renderer, &rect);
@@ -243,7 +243,7 @@ int main() {
 
         // Draw invader bullets
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        for (const auto& b : invaderBullets) {
+        for (const Bullet& b : invaderBullets) {
             if (!b.alive) continue;
             SDL_FRect rect{(float)b.x, (float)b.y, (float)b.w, (float)b.h};
             SDL_RenderFillRect(renderer, &rect);
