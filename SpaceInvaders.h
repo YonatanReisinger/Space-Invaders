@@ -1,6 +1,10 @@
 #pragma once
 #include <cstdint>
 #include "bagel.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
+
+#include "SpaceInvadersConfig.h"
 
 /**
  * @file SpaceInvaders.h
@@ -66,6 +70,16 @@ struct PlayerTag {};
  */
 struct EnemyTag {};
 
+    /**
+ * @brief Tag for the player projectile entities (Tag).
+ */
+    struct PlayerProjectileTag {};
+
+    /**
+     * @brief Tag for enemy projectile entities (Tag).
+     */
+    struct EnemyProjectileTag {};
+
 /**
  * @brief Tag for projectile entities (Tag).
  */
@@ -91,6 +105,10 @@ struct ScoreValue {
 struct RenderData {
     int spriteId = 0; ///< Placeholder for sprite/texture reference
 };
+
+    struct PostureChanger {
+        int postureId = 0;
+    };
 
 /**
  * @brief Tag for entities marked as dead (dynamic, optional).
@@ -123,7 +141,8 @@ struct WantsToShoot {};
 // === Systems ===
 
 void MovementSystem();
-void RenderSystem();
+void RenderSystem(SDL_Renderer* renderer, SDL_Texture* gInvaderTexture, SDL_Texture* gPlayerTexture,
+    SDL_FRect invaderSpriteRects[NUM_OF_INVADERS_TYPES][NUM_OF_INVADERS_POSTURES_PER_TYPE], SDL_FRect playerSpriteRect);
 void CollisionSystem();
 void PlayerShootingSystem();
 void EnemyShootingSystem();
@@ -132,6 +151,8 @@ void ScoreSystem();
 void EnemyLogicSystem();
 void PlayerIntentSystem();
 void PlayerActionSystem();
+    void DeleteOffscreenEntitiesSystem();
+    void ChangeEnemyPostureSystem();
 
 // === Entity creation ===
 

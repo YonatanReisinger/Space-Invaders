@@ -12,9 +12,9 @@ namespace bagel
 	{
 		bool	AggregateUpdates = true;
 		bool	CallbackOnDestroy = true;
-		bool	DynamicResize = false;
+		bool	DynamicResize = true;
 		int		IdBagSize = 5;
-		int		InitialEntities = 100;
+		int		InitialEntities = 10000000;
 		int		InitialPackedSize = 5;
 		int		MaxComponents = 100;
 	};
